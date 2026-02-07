@@ -5,10 +5,10 @@
 
 use crate::block_definitions::*;
 
-/// Minimum Y coordinate in Minecraft (1.18+)
-const MIN_Y: i32 = -64;
-/// Maximum Y coordinate in Minecraft (1.18+)
-const MAX_Y: i32 = 319;
+/// Minimum Y coordinate in Minecraft (1.8.9)
+const MIN_Y: i32 = 0;
+/// Maximum Y coordinate in Minecraft (1.8.9)
+const MAX_Y: i32 = 255;
 use fastnbt::{LongArray, Value};
 use fnv::FnvHashMap;
 use serde::{Deserialize, Serialize};
@@ -181,7 +181,7 @@ impl Default for SectionToModify {
     }
 }
 
-/// A chunk being modified (16x384x16 blocks, divided into sections)
+/// A chunk being modified (16x256x16 blocks, divided into sections)
 #[derive(Default)]
 pub(crate) struct ChunkToModify {
     pub sections: FnvHashMap<i8, SectionToModify>,

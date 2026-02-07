@@ -9,7 +9,7 @@ use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 
 /// Maximum Y coordinate in Minecraft (build height limit)
-const MAX_Y: i32 = 319;
+const MAX_Y: i32 = 255;
 /// AWS S3 Terrarium tiles endpoint (no API key required)
 const AWS_TERRARIUM_URL: &str =
     "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";

@@ -18,7 +18,7 @@ use std::io::Write;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
 
-/// Cached base chunk sections (grass at Y=-62)
+/// Cached base chunk sections (grass at Y=1)
 /// Computed once on first use and reused for all empty chunks
 static BASE_CHUNK_SECTIONS: OnceLock<Vec<Section>> = OnceLock::new();
 
@@ -28,7 +28,7 @@ fn get_base_chunk_sections() -> &'static [Section] {
         let mut chunk = ChunkToModify::default();
         for x in 0..16 {
             for z in 0..16 {
-                chunk.set_block(x, -62, z, GRASS_BLOCK);
+                chunk.set_block(x, 1, z, GRASS_BLOCK);
             }
         }
         chunk.sections().collect()
@@ -64,7 +64,7 @@ impl<'a> WorldEditor<'a> {
         Region::from_stream(region_file).expect("Failed to load region")
     }
 
-    /// Helper function to create a base chunk with grass blocks at Y -62
+    /// Helper function to create a base chunk with grass blocks at Y 1
     /// Uses cached sections for efficiency - only serialization happens per chunk
     pub(super) fn create_base_chunk(abs_chunk_x: i32, abs_chunk_z: i32) -> (Vec<u8>, bool) {
         // Use cached sections (computed once on first call)
