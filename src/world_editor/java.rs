@@ -235,7 +235,7 @@ fn create_level_wrapper(chunk: &Chunk) -> HashMap<String, Value> {
             Value::Byte(i8::try_from(chunk.is_light_on).unwrap()),
         ),
         (
-            "sections".to_string(),
+            "Sections".to_string(), // Capital S for pre-1.13 format (1.8.9 compatibility)
             Value::List(
                 chunk
                     .sections
