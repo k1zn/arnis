@@ -344,7 +344,8 @@ pub fn generate_landuse(
                 }
             }
             "quarry" => {
-                // Add stone layer under it
+                // Add stone layer under it - use ground-relative offsets
+                // These are safe as long as ground level is above MIN_Y
                 editor.set_block(STONE, x, -1, z, Some(&[STONE]), None);
                 editor.set_block(STONE, x, -2, z, Some(&[STONE]), None);
                 // Generate ore blocks
