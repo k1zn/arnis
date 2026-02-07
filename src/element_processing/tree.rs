@@ -245,13 +245,13 @@ impl Tree<'_> {
             GRAY_TERRACOTTA,
             LIGHT_BLUE_TERRACOTTA,
             LIGHT_GRAY_CONCRETE,
-            BRICK, // MUD_BRICKS doesn't exist in 1.8.9, use BRICK instead
+            CHISELED_STONE_BRICKS, // MUD_BRICKS doesn't exist in 1.8.9, use CHISELED_STONE_BRICKS for variety
             NETHER_BRICK,
-            NETHER_BRICK, // NETHERITE_BLOCK doesn't exist in 1.8.9, use NETHER_BRICK instead
+            RED_NETHER_BRICK, // NETHERITE_BLOCK doesn't exist in 1.8.9, use RED_NETHER_BRICK for variety
             POLISHED_ANDESITE,
-            STONE_BRICKS, // POLISHED_BLACKSTONE doesn't exist in 1.8.9, use STONE_BRICKS instead
-            STONE_BRICKS, // POLISHED_BLACKSTONE_BRICKS doesn't exist in 1.8.9, use STONE_BRICKS instead
-            POLISHED_ANDESITE, // POLISHED_DEEPSLATE doesn't exist in 1.8.9, use POLISHED_ANDESITE instead
+            CRACKED_STONE_BRICKS, // POLISHED_BLACKSTONE doesn't exist in 1.8.9, use CRACKED_STONE_BRICKS for variety
+            POLISHED_DIORITE, // POLISHED_BLACKSTONE_BRICKS doesn't exist in 1.8.9, use POLISHED_DIORITE for variety
+            POLISHED_GRANITE, // POLISHED_DEEPSLATE doesn't exist in 1.8.9, use POLISHED_GRANITE for variety
             POLISHED_GRANITE,
             QUARTZ_BLOCK,
             QUARTZ_BRICKS,
