@@ -2,7 +2,7 @@ use crate::args::Args;
 use crate::coordinate_system::cartesian::{XZBBox, XZPoint};
 use crate::coordinate_system::geographic::{LLBBox, LLPoint};
 use crate::coordinate_system::transformation::CoordTransformer;
-use crate::data_processing::{self, GenerationOptions};
+use crate::data_processing::{self, GenerationOptions, MIN_Y};
 use crate::ground::{self, Ground};
 use crate::map_transformation;
 use crate::osm_parser;
@@ -619,9 +619,10 @@ pub fn update_player_spawn_y_after_generation(
         let relative_z = existing_spawn_z - xzbbox.min_z();
         let terrain_point = XZPoint::new(relative_x, relative_z);
 
-        ground.level(terrain_point) + 3 // Add 3 blocks above terrain for safety
+        let terrain_y = ground.level(terrain_point) + 3; // Add 3 blocks above terrain for safety
+        terrain_y.max(MIN_Y) // Ensure spawn is never below MIN_Y
     } else {
-        -61 // Default Y if no terrain
+        MIN_Y + 64 // Default Y if no terrain (safe height above bedrock)
     };
 
     // Update player position and world spawn point

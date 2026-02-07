@@ -361,24 +361,29 @@ pub fn generate_world_with_options(
                             // Rural/natural area: grass and dirt
                             editor.set_block_absolute(GRASS_BLOCK, x, ground_y, z, None, None);
                         }
-                        editor.set_block_absolute(DIRT, x, ground_y - 1, z, None, None);
-                        editor.set_block_absolute(DIRT, x, ground_y - 2, z, None, None);
+                        // Place dirt layers below ground, ensuring they don't go below MIN_Y
+                        editor.set_block_absolute(DIRT, x, (ground_y - 1).max(MIN_Y), z, None, None);
+                        editor.set_block_absolute(DIRT, x, (ground_y - 2).max(MIN_Y), z, None, None);
                     }
 
                     // Fill underground with stone
                     if args.fillground {
                         // Fill from bedrock+1 to 3 blocks below ground with stone
-                        editor.fill_blocks_absolute(
-                            STONE,
-                            x,
-                            MIN_Y + 1,
-                            z,
-                            x,
-                            ground_y - 3,
-                            z,
-                            None,
-                            None,
-                        );
+                        // Only fill if ground_y is high enough to create a valid range
+                        let fill_top = ground_y - 3;
+                        if fill_top >= MIN_Y + 1 {
+                            editor.fill_blocks_absolute(
+                                STONE,
+                                x,
+                                MIN_Y + 1,
+                                z,
+                                x,
+                                fill_top,
+                                z,
+                                None,
+                                None,
+                            );
+                        }
                     }
                     // Generate a bedrock level at MIN_Y
                     editor.set_block_absolute(BEDROCK, x, MIN_Y, z, None, Some(&[BEDROCK]));

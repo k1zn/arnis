@@ -73,6 +73,12 @@ fn create_water_channel(
     depth: i32,
 ) {
     let half_width = width / 2;
+    
+    // Get the terrain elevation at the center of the waterway as the reference point
+    // for all water placement. For narrow waterways (2-12 blocks wide), this provides
+    // good results while maintaining performance. Wider waterways in highly varied
+    // terrain may show minor elevation artifacts.
+    let base_ground_level = editor.get_ground_level(center_x, center_z);
 
     for x in (center_x - half_width - 1)..=(center_x + half_width + 1) {
         for z in (center_z - half_width - 1)..=(center_z + half_width + 1) {
@@ -81,22 +87,24 @@ fn create_water_channel(
             let distance_from_center = dx.max(dz);
 
             if distance_from_center <= half_width {
-                // Main water channel
-                for y in (1 - depth)..=0 {
+                // Main water channel - place water at terrain level and dig down for depth
+                for d in 0..depth {
+                    let y = base_ground_level - d;
                     editor.set_block(WATER, x, y, z, None, None);
                 }
 
                 // Place one layer of dirt below the water channel
-                editor.set_block(DIRT, x, -depth, z, None, None);
+                editor.set_block(DIRT, x, base_ground_level - depth, z, None, None);
 
-                // Clear vegetation above the water
-                editor.set_block(AIR, x, 1, z, Some(&[GRASS, WHEAT, CARROTS, POTATOES]), None);
+                // Clear vegetation above the water at surface level
+                editor.set_block(AIR, x, base_ground_level + 1, z, Some(&[GRASS, WHEAT, CARROTS, POTATOES]), None);
             } else if distance_from_center == half_width + 1 && depth > 1 {
                 // Create sloped banks (one block interval slopes)
                 let slope_depth = (depth - 1).max(1);
-                for y in (1 - slope_depth)..=0 {
-                    if y == 0 {
-                        // Surface level - place water or air
+                for d in 0..slope_depth {
+                    let y = base_ground_level - d;
+                    if d == 0 {
+                        // Surface level - place water
                         editor.set_block(WATER, x, y, z, None, None);
                     } else {
                         // Below surface - dig out for slope
@@ -105,10 +113,10 @@ fn create_water_channel(
                 }
 
                 // Place one layer of dirt below the sloped areas
-                editor.set_block(DIRT, x, -slope_depth, z, None, None);
+                editor.set_block(DIRT, x, base_ground_level - slope_depth, z, None, None);
 
                 // Clear vegetation above sloped areas
-                editor.set_block(AIR, x, 1, z, Some(&[GRASS, WHEAT, CARROTS, POTATOES]), None);
+                editor.set_block(AIR, x, base_ground_level + 1, z, Some(&[GRASS, WHEAT, CARROTS, POTATOES]), None);
             }
         }
     }

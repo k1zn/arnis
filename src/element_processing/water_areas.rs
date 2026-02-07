@@ -257,7 +257,7 @@ fn inverse_floodfill_recursive(
     // Multiply as i64 to avoid overflow; in release builds where unchecked math is
     // enabled, this could cause the rest of this code to end up in an infinite loop.
     if ((max.0 - min.0) as i64) * ((max.1 - min.1) as i64) < ITERATIVE_THRES {
-        inverse_floodfill_iterative(min, max, 0, outers, inners, editor);
+        inverse_floodfill_iterative(min, max, outers, inners, editor);
         return;
     }
 
@@ -279,7 +279,7 @@ fn inverse_floodfill_recursive(
         if outers.iter().any(|outer: &Polygon| outer.contains(&rect))
             && !inners.iter().any(|inner: &Polygon| inner.intersects(&rect))
         {
-            rect_fill(min_x, max_x, min_z, max_z, 0, editor);
+            rect_fill(min_x, max_x, min_z, max_z, editor);
             continue;
         }
 
@@ -310,7 +310,6 @@ fn inverse_floodfill_recursive(
 fn inverse_floodfill_iterative(
     min: (i32, i32),
     max: (i32, i32),
-    ground_level: i32,
     outers: &[Polygon],
     inners: &[Polygon],
     editor: &mut WorldEditor,
@@ -322,6 +321,10 @@ fn inverse_floodfill_iterative(
             if outers.iter().any(|poly: &Polygon| poly.contains(&p))
                 && inners.iter().all(|poly: &Polygon| !poly.contains(&p))
             {
+                // Get terrain elevation at this coordinate to place water at correct height
+                // Note: For large water bodies, this queries terrain for each block which may
+                // impact performance. However, it ensures water follows terrain contours accurately.
+                let ground_level = editor.get_ground_level(x, z);
                 editor.set_block(WATER, x, ground_level, z, None, None);
             }
         }
@@ -333,11 +336,15 @@ fn rect_fill(
     max_x: i32,
     min_z: i32,
     max_z: i32,
-    ground_level: i32,
     editor: &mut WorldEditor,
 ) {
     for x in min_x..max_x {
         for z in min_z..max_z {
+            // Get terrain elevation at this coordinate to place water at correct height
+            // Note: For large rectangular water areas, this queries terrain for each block.
+            // This ensures water follows terrain contours but may impact performance for
+            // very large water bodies.
+            let ground_level = editor.get_ground_level(x, z);
             editor.set_block(WATER, x, ground_level, z, None, None);
         }
     }

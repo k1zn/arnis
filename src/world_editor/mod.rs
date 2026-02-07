@@ -8,9 +8,11 @@
 //! - `common` - Shared data structures for world modification
 //! - `java` - Java Edition Anvil format saving
 //! - `bedrock` - Bedrock Edition .mcworld format saving (behind `bedrock` feature)
+//! - `legacy_blocks` - Support for Minecraft 1.8.9 legacy block format
 
 mod common;
 mod java;
+mod legacy_blocks;  // Legacy block format for 1.8.9 compatibility
 
 #[cfg(feature = "bedrock")]
 pub mod bedrock;
@@ -139,16 +141,20 @@ impl<'a> WorldEditor<'a> {
     }
 
     /// Calculate the absolute Y position from a ground-relative offset
+    /// The result is clamped to ensure it's never below MIN_Y
     #[inline(always)]
     pub fn get_absolute_y(&self, x: i32, y_offset: i32, z: i32) -> i32 {
-        if let Some(ground) = &self.ground {
+        let absolute_y = if let Some(ground) = &self.ground {
             ground.level(XZPoint::new(
                 x - self.xzbbox.min_x(),
                 z - self.xzbbox.min_z(),
             )) + y_offset
         } else {
             y_offset // If no ground reference, use y_offset as absolute Y
-        }
+        };
+        
+        // Ensure the result is never below MIN_Y (0) for Minecraft 1.8.9 compatibility
+        absolute_y.max(crate::data_processing::MIN_Y)
     }
 
     /// Get the ground level at a specific world coordinate (without any offset)

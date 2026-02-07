@@ -164,7 +164,8 @@ fn generate_water_well(editor: &mut WorldEditor, element: &ProcessedElement) {
         for dx in -1..=1 {
             for dz in -1..=1 {
                 if dx == 0 && dz == 0 {
-                    // Water in the center
+                    // Water in the center - place at ground level and one block below
+                    // Y offsets are automatically clamped to MIN_Y in get_absolute_y()
                     editor.set_block(WATER, x, -1, z, None, None);
                     editor.set_block(WATER, x, 0, z, None, None);
                 } else {

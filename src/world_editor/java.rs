@@ -14,7 +14,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Seek, Write};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
 
@@ -39,7 +39,8 @@ fn get_base_chunk_sections() -> &'static [Section] {
 use crate::telemetry::{send_log, LogLevel};
 
 impl<'a> WorldEditor<'a> {
-    /// Creates a region file for the given region coordinates.
+    /// Creates or opens a region file for the given region coordinates.
+    /// Does NOT truncate existing files to preserve existing world data.
     pub(super) fn create_region(&self, region_x: i32, region_z: i32) -> Region<File> {
         let region_dir = self.world_dir.join("region");
         let out_path = region_dir.join(format!("r.{}.{}.mca", region_x, region_z));
@@ -47,21 +48,40 @@ impl<'a> WorldEditor<'a> {
         // Ensure region directory exists before creating region files
         std::fs::create_dir_all(&region_dir).expect("Failed to create region directory");
 
-        const REGION_TEMPLATE: &[u8] = include_bytes!("../../assets/minecraft/region.template");
+        // Check if region file already exists
+        let file_exists = out_path.exists();
 
-        let mut region_file: File = File::options()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&out_path)
-            .expect("Failed to open region file");
+        if file_exists {
+            // Open existing region file without truncating
+            let region_file: File = File::options()
+                .read(true)
+                .write(true)
+                .open(&out_path)
+                .expect("Failed to open existing region file");
 
-        region_file
-            .write_all(REGION_TEMPLATE)
-            .expect("Could not write region template");
+            Region::from_stream(region_file).expect("Failed to load existing region")
+        } else {
+            // Create new region file from template
+            const REGION_TEMPLATE: &[u8] = include_bytes!("../../assets/minecraft/region.template");
 
-        Region::from_stream(region_file).expect("Failed to load region")
+            let mut region_file: File = File::options()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(&out_path)
+                .expect("Failed to create region file");
+
+            region_file
+                .write_all(REGION_TEMPLATE)
+                .expect("Could not write region template");
+
+            // Rewind to start of file for reading
+            region_file
+                .seek(std::io::SeekFrom::Start(0))
+                .expect("Failed to seek to start of region file");
+
+            Region::from_stream(region_file).expect("Failed to load new region")
+        }
     }
 
     /// Helper function to create a base chunk with grass blocks at Y 1
@@ -141,22 +161,25 @@ impl<'a> WorldEditor<'a> {
 
     /// Saves a single region to disk.
     ///
-    /// Optimized for new world creation, writes chunks directly without reading existing data.
-    /// This assumes we're creating a fresh world, not modifying an existing one.
+    /// Writes only modified chunks to preserve existing world data.
+    /// For new regions, fills missing chunks with base layer.
     fn save_single_region(
         &self,
         region_x: i32,
         region_z: i32,
         region_to_modify: &super::common::RegionToModify,
     ) {
+        // Check if this is a new region file
+        let region_path = self.world_dir.join("region").join(format!("r.{}.{}.mca", region_x, region_z));
+        let is_new_region = !region_path.exists();
+        
         let mut region = self.create_region(region_x, region_z);
         let mut ser_buffer = Vec::with_capacity(8192);
 
         // First pass: write all chunks that have content
         for (&(chunk_x, chunk_z), chunk_to_modify) in &region_to_modify.chunks {
             if !chunk_to_modify.sections.is_empty() || !chunk_to_modify.other.is_empty() {
-                // Create chunk directly, we're writing to a fresh region file
-                // so there's no existing data to preserve
+                // Write modified chunk
                 let chunk = Chunk {
                     sections: chunk_to_modify.sections().collect(),
                     x_pos: chunk_x + (region_x * 32),
@@ -175,21 +198,24 @@ impl<'a> WorldEditor<'a> {
             }
         }
 
-        // Second pass: ensure all chunks exist (fill with base layer if not)
-        for chunk_x in 0..32 {
-            for chunk_z in 0..32 {
-                let abs_chunk_x = chunk_x + (region_x * 32);
-                let abs_chunk_z = chunk_z + (region_z * 32);
+        // Second pass: For NEW regions only, fill missing chunks with base layer
+        // For existing regions, skip this to preserve existing world data
+        if is_new_region {
+            for chunk_x in 0..32 {
+                for chunk_z in 0..32 {
+                    let abs_chunk_x = chunk_x + (region_x * 32);
+                    let abs_chunk_z = chunk_z + (region_z * 32);
 
-                // Check if chunk exists in our modifications
-                let chunk_exists = region_to_modify.chunks.contains_key(&(chunk_x, chunk_z));
+                    // Check if chunk exists in our modifications
+                    let chunk_modified = region_to_modify.chunks.contains_key(&(chunk_x, chunk_z));
 
-                // If chunk doesn't exist, create it with base layer
-                if !chunk_exists {
-                    let (ser_buffer, _) = Self::create_base_chunk(abs_chunk_x, abs_chunk_z);
-                    region
-                        .write_chunk(chunk_x as usize, chunk_z as usize, &ser_buffer)
-                        .unwrap();
+                    // If chunk wasn't modified, create it with base layer
+                    if !chunk_modified {
+                        let (ser_buffer, _) = Self::create_base_chunk(abs_chunk_x, abs_chunk_z);
+                        region
+                            .write_chunk(chunk_x as usize, chunk_z as usize, &ser_buffer)
+                            .unwrap();
+                    }
                 }
             }
         }
@@ -225,6 +251,7 @@ fn get_entity_coords(entity: &HashMap<String, Value>) -> Option<(i32, i32, i32)>
 }
 
 /// Creates a Level wrapper for chunk data (Java Edition format)
+/// Uses legacy Blocks/Data format for Minecraft 1.8.9 compatibility
 #[inline]
 fn create_level_wrapper(chunk: &Chunk) -> HashMap<String, Value> {
     let mut level_map = HashMap::from([
@@ -241,41 +268,17 @@ fn create_level_wrapper(chunk: &Chunk) -> HashMap<String, Value> {
                     .sections
                     .iter()
                     .map(|section| {
-                        let mut block_states = HashMap::from([(
-                            "palette".to_string(),
-                            Value::List(
-                                section
-                                    .block_states
-                                    .palette
-                                    .iter()
-                                    .map(|item| {
-                                        let mut palette_item = HashMap::from([(
-                                            "Name".to_string(),
-                                            Value::String(item.name.clone()),
-                                        )]);
-                                        if let Some(props) = &item.properties {
-                                            palette_item
-                                                .insert("Properties".to_string(), props.clone());
-                                        }
-                                        Value::Compound(palette_item)
-                                    })
-                                    .collect(),
-                            ),
-                        )]);
-
-                        // Only add the `data` attribute if it's non-empty
-                        // to maintain compatibility with third-party tools like Dynmap
-                        if let Some(data) = &section.block_states.data {
-                            if !data.is_empty() {
-                                block_states
-                                    .insert("data".to_string(), Value::LongArray(data.to_owned()));
-                            }
-                        }
-
-                        Value::Compound(HashMap::from([
+                        // Create section with legacy Blocks and Data format (1.8.9)
+                        let mut section_map = HashMap::from([
                             ("Y".to_string(), Value::Byte(section.y)),
-                            ("block_states".to_string(), Value::Compound(block_states)),
-                        ]))
+                        ]);
+                        
+                        // Add Blocks and Data from the section's 'other' field
+                        for (key, value) in &section.other {
+                            section_map.insert(key.clone(), value.clone());
+                        }
+                        
+                        Value::Compound(section_map)
                     })
                     .collect(),
             ),

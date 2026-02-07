@@ -835,12 +835,9 @@ async function startGeneration() {
     var fill_ground = document.getElementById("fillground-toggle").checked;
     var city_boundaries = document.getElementById("city-boundaries-toggle").checked;
     var scale = parseFloat(document.getElementById("scale-value-slider").value);
-    // var ground_level = parseInt(document.getElementById("ground-level").value, 10);
     // DEPRECATED: Ground level input removed from UI
-    var ground_level = -62;
-
-    // Validate ground_level
-    ground_level = isNaN(ground_level) || ground_level < -62 ? -62 : ground_level;
+    // Changed from -62 to 64 to ensure terrain is above MIN_Y (0) for Minecraft 1.8.9
+    var ground_level = 64;
 
     // Get telemetry consent (defaults to false if not set)
     const telemetryConsent = window.getTelemetryConsent ? window.getTelemetryConsent() : false;

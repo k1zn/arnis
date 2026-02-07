@@ -102,6 +102,37 @@ impl SectionToModify {
         usize::from(y) % 16 * 256 + usize::from(z) * 16 + usize::from(x)
     }
 
+    /// Convert to Java Edition section format (1.8.9 legacy Blocks/Data format)
+    pub fn to_legacy_section(&self, y: i8) -> Section {
+        // Convert blocks array to legacy Blocks and Data byte arrays
+        let (blocks_array, data_array) = super::legacy_blocks::section_to_legacy_format(&self.blocks);
+        
+        // Convert Vec<u8> to Vec<i8> for ByteArray
+        let blocks_i8: Vec<i8> = blocks_array.into_iter().map(|b| b as i8).collect();
+        let data_i8: Vec<i8> = data_array.into_iter().map(|b| b as i8).collect();
+        
+        // Create a dummy palette with just air (not used in 1.8.9 format)
+        let palette = vec![PaletteItem {
+            name: "minecraft:air".to_string(),
+            properties: None,
+        }];
+        
+        // Store the Blocks and Data arrays in the 'other' field
+        let mut other = FnvHashMap::default();
+        other.insert("Blocks".to_string(), Value::ByteArray(fastnbt::ByteArray::new(blocks_i8)));
+        other.insert("Data".to_string(), Value::ByteArray(fastnbt::ByteArray::new(data_i8)));
+        
+        Section {
+            block_states: Blockstates {
+                palette,
+                data: None,  // No LongArray data in legacy format
+                other: FnvHashMap::default(),
+            },
+            y,
+            other,  // Blocks and Data stored here
+        }
+    }
+
     /// Convert to Java Edition section format
     pub fn to_section(&self, y: i8) -> Section {
         // Create a map of unique block+properties combinations to palette indices
@@ -223,7 +254,7 @@ impl ChunkToModify {
     }
 
     pub fn sections(&self) -> impl Iterator<Item = Section> + '_ {
-        self.sections.iter().map(|(y, s)| s.to_section(*y))
+        self.sections.iter().map(|(y, s)| s.to_legacy_section(*y))  // Use legacy format for 1.8.9
     }
 }
 
