@@ -252,7 +252,6 @@ impl Tree<'_> {
             CRACKED_STONE_BRICKS, // POLISHED_BLACKSTONE doesn't exist in 1.8.9, use CRACKED_STONE_BRICKS for variety
             POLISHED_DIORITE, // POLISHED_BLACKSTONE_BRICKS doesn't exist in 1.8.9, use POLISHED_DIORITE for variety
             POLISHED_GRANITE, // POLISHED_DEEPSLATE doesn't exist in 1.8.9, use POLISHED_GRANITE for variety
-            POLISHED_GRANITE,
             QUARTZ_BLOCK,
             QUARTZ_BRICKS,
             SANDSTONE,
