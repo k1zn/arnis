@@ -2,6 +2,7 @@
 use crate::telemetry::{send_log, LogLevel};
 use crate::{
     coordinate_system::{geographic::LLBBox, transformation::geo_distance},
+    data_processing::MIN_Y,
     progress::emit_gui_progress_update,
 };
 use image::Rgb;
@@ -527,9 +528,10 @@ pub fn fetch_elevation_data(
                     };
                     // Scale to Minecraft blocks and add to ground level
                     let scaled_height: f64 = relative_height * scaled_range;
-                    // Clamp to valid Minecraft Y range (leave buffer at top for structures)
+                    // Clamp to valid Minecraft Y range (MIN_Y to MAX_Y with buffer at top for structures)
+                    // Ensure terrain is never below MIN_Y (0) for Minecraft 1.8.9 compatibility
                     ((ground_level as f64 + scaled_height).round() as i32)
-                        .clamp(ground_level, MAX_Y - TERRAIN_HEIGHT_BUFFER)
+                        .clamp(MIN_Y, MAX_Y - TERRAIN_HEIGHT_BUFFER)
                 })
                 .collect()
         })

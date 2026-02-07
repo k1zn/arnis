@@ -837,10 +837,11 @@ async function startGeneration() {
     var scale = parseFloat(document.getElementById("scale-value-slider").value);
     // var ground_level = parseInt(document.getElementById("ground-level").value, 10);
     // DEPRECATED: Ground level input removed from UI
-    var ground_level = -62;
+    // Changed from -62 to 64 to ensure terrain is above MIN_Y (0) for Minecraft 1.8.9
+    var ground_level = 64;
 
-    // Validate ground_level
-    ground_level = isNaN(ground_level) || ground_level < -62 ? -62 : ground_level;
+    // Validate ground_level - ensure it's at least 0 (MIN_Y for Minecraft 1.8.9)
+    ground_level = isNaN(ground_level) || ground_level < 0 ? 64 : ground_level;
 
     // Get telemetry consent (defaults to false if not set)
     const telemetryConsent = window.getTelemetryConsent ? window.getTelemetryConsent() : false;
