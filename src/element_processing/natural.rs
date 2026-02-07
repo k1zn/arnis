@@ -104,7 +104,7 @@ pub fn generate_natural(
                 "bare_rock" => STONE,
                 "blockfield" => COBBLESTONE,
                 "glacier" => PACKED_ICE,
-                "mud" | "wetland" => MUD,
+                "mud" | "wetland" => CLAY, // MUD doesn't exist in 1.8.9, use CLAY instead
                 "mountain_range" => COBBLESTONE,
                 "saddle" | "ridge" => STONE,
                 "shrubbery" | "tundra" | "hill" => GRASS_BLOCK,
@@ -285,7 +285,7 @@ pub fn generate_natural(
                                 // Wetland without water blocks
                                 if matches!(wetland_type.as_str(), "wet_meadow" | "fen") {
                                     if rng.gen_bool(0.3) {
-                                        editor.set_block(GRASS_BLOCK, x, 0, z, Some(&[MUD]), None);
+                                        editor.set_block(GRASS_BLOCK, x, 0, z, Some(&[CLAY]), None); // MUD doesn't exist in 1.8.9, use CLAY instead
                                     }
                                     editor.set_block(GRASS, x, 1, z, None, None);
                                     continue;
@@ -297,12 +297,12 @@ pub fn generate_natural(
                                         x,
                                         0,
                                         z,
-                                        Some(&[MUD, GRASS_BLOCK]),
+                                        Some(&[CLAY, GRASS_BLOCK]), // MUD doesn't exist in 1.8.9, use CLAY instead
                                         None,
                                     );
                                     continue;
                                 }
-                                if !editor.check_for_block(x, 0, z, Some(&[MUD, MOSS_BLOCK])) {
+                                if !editor.check_for_block(x, 0, z, Some(&[CLAY, MOSS_BLOCK])) { // MUD doesn't exist in 1.8.9, use CLAY instead
                                     continue;
                                 }
                                 match wetland_type.as_str() {
@@ -330,7 +330,7 @@ pub fn generate_natural(
                                                 x,
                                                 0,
                                                 z,
-                                                Some(&[MUD]),
+                                                Some(&[CLAY]), // MUD doesn't exist in 1.8.9, use CLAY instead
                                                 None,
                                             );
                                         }
@@ -348,7 +348,7 @@ pub fn generate_natural(
                             } else {
                                 // Generic natural=wetland without wetland=... tag
                                 if rng.gen_bool(0.3) {
-                                    editor.set_block(WATER, x, 0, z, Some(&[MUD]), None);
+                                    editor.set_block(WATER, x, 0, z, Some(&[CLAY]), None); // MUD doesn't exist in 1.8.9, use CLAY instead
                                     continue;
                                 }
                                 editor.set_block(GRASS, x, 1, z, None, None);

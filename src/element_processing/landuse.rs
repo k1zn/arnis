@@ -352,7 +352,7 @@ pub fn generate_landuse(
                     let ore_block = match resource.as_str() {
                         "iron_ore" => IRON_ORE,
                         "coal" => COAL_ORE,
-                        "copper" => COPPER_ORE,
+                        "copper" => IRON_ORE, // COPPER_ORE doesn't exist in 1.8.9, use IRON_ORE instead
                         "gold" => GOLD_ORE,
                         "clay" | "kaolinite" => CLAY,
                         _ => STONE,
