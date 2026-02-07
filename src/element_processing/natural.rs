@@ -176,7 +176,7 @@ pub fn generate_natural(
                         }
                         "glacier" => {
                             editor.set_block(PACKED_ICE, x, 0, z, None, None);
-                            // Place stone layer below - safe as long as ground level is above MIN_Y
+                            // Place stone layer below - Y offset automatically clamped to MIN_Y
                             editor.set_block(STONE, x, -1, z, None, None);
                         }
                         "bare_rock" => {
