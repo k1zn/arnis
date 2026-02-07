@@ -10,6 +10,7 @@ use crate::bedrock_block_map::{
 };
 use crate::coordinate_system::cartesian::XZBBox;
 use crate::coordinate_system::geographic::LLBBox;
+use crate::data_processing::MIN_Y;
 use crate::ground::Ground;
 use crate::progress::emit_gui_progress_update;
 
@@ -224,9 +225,10 @@ impl BedrockWriter {
                 let rel_x = spawn_x - xzbbox.min_x();
                 let rel_z = spawn_z - xzbbox.min_z();
                 let coord = crate::coordinate_system::cartesian::XZPoint::new(rel_x, rel_z);
-                ground.level(coord) + 3 // Add 3 blocks above ground for safety
+                let terrain_y = ground.level(coord) + 3; // Add 3 blocks above ground for safety
+                terrain_y.max(MIN_Y) // Ensure spawn is never below MIN_Y
             })
-            .unwrap_or(64);
+            .unwrap_or(MIN_Y + 64); // Default to Y=64 above bedrock if no ground data
 
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
