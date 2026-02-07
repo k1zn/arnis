@@ -322,6 +322,8 @@ fn inverse_floodfill_iterative(
                 && inners.iter().all(|poly: &Polygon| !poly.contains(&p))
             {
                 // Get terrain elevation at this coordinate to place water at correct height
+                // Note: For large water bodies, this queries terrain for each block which may
+                // impact performance. However, it ensures water follows terrain contours accurately.
                 let ground_level = editor.get_ground_level(x, z);
                 editor.set_block(WATER, x, ground_level, z, None, None);
             }
@@ -339,6 +341,9 @@ fn rect_fill(
     for x in min_x..max_x {
         for z in min_z..max_z {
             // Get terrain elevation at this coordinate to place water at correct height
+            // Note: For large rectangular water areas, this queries terrain for each block.
+            // This ensures water follows terrain contours but may impact performance for
+            // very large water bodies.
             let ground_level = editor.get_ground_level(x, z);
             editor.set_block(WATER, x, ground_level, z, None, None);
         }

@@ -74,7 +74,10 @@ fn create_water_channel(
 ) {
     let half_width = width / 2;
     
-    // Get the terrain elevation at the center of the waterway
+    // Get the terrain elevation at the center of the waterway as the reference point
+    // for all water placement. For narrow waterways (2-12 blocks wide), this provides
+    // good results while maintaining performance. Wider waterways in highly varied
+    // terrain may show minor elevation artifacts.
     let base_ground_level = editor.get_ground_level(center_x, center_z);
 
     for x in (center_x - half_width - 1)..=(center_x + half_width + 1) {
