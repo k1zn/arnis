@@ -8,9 +8,11 @@
 //! - `common` - Shared data structures for world modification
 //! - `java` - Java Edition Anvil format saving
 //! - `bedrock` - Bedrock Edition .mcworld format saving (behind `bedrock` feature)
+//! - `legacy_blocks` - Support for Minecraft 1.8.9 legacy block format
 
 mod common;
 mod java;
+mod legacy_blocks;  // Legacy block format for 1.8.9 compatibility
 
 #[cfg(feature = "bedrock")]
 pub mod bedrock;

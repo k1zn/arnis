@@ -251,6 +251,7 @@ fn get_entity_coords(entity: &HashMap<String, Value>) -> Option<(i32, i32, i32)>
 }
 
 /// Creates a Level wrapper for chunk data (Java Edition format)
+/// Uses legacy Blocks/Data format for Minecraft 1.8.9 compatibility
 #[inline]
 fn create_level_wrapper(chunk: &Chunk) -> HashMap<String, Value> {
     let mut level_map = HashMap::from([
@@ -267,41 +268,17 @@ fn create_level_wrapper(chunk: &Chunk) -> HashMap<String, Value> {
                     .sections
                     .iter()
                     .map(|section| {
-                        let mut block_states = HashMap::from([(
-                            "palette".to_string(),
-                            Value::List(
-                                section
-                                    .block_states
-                                    .palette
-                                    .iter()
-                                    .map(|item| {
-                                        let mut palette_item = HashMap::from([(
-                                            "Name".to_string(),
-                                            Value::String(item.name.clone()),
-                                        )]);
-                                        if let Some(props) = &item.properties {
-                                            palette_item
-                                                .insert("Properties".to_string(), props.clone());
-                                        }
-                                        Value::Compound(palette_item)
-                                    })
-                                    .collect(),
-                            ),
-                        )]);
-
-                        // Only add the `data` attribute if it's non-empty
-                        // to maintain compatibility with third-party tools like Dynmap
-                        if let Some(data) = &section.block_states.data {
-                            if !data.is_empty() {
-                                block_states
-                                    .insert("data".to_string(), Value::LongArray(data.to_owned()));
-                            }
-                        }
-
-                        Value::Compound(HashMap::from([
+                        // Create section with legacy Blocks and Data format (1.8.9)
+                        let mut section_map = HashMap::from([
                             ("Y".to_string(), Value::Byte(section.y)),
-                            ("block_states".to_string(), Value::Compound(block_states)),
-                        ]))
+                        ]);
+                        
+                        // Add Blocks and Data from the section's 'other' field
+                        for (key, value) in &section.other {
+                            section_map.insert(key.clone(), value.clone());
+                        }
+                        
+                        Value::Compound(section_map)
                     })
                     .collect(),
             ),
