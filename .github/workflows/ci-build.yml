@@ -72,3 +72,33 @@ jobs:
 
     - name: Run unit tests
       run: cargo test --all-targets --all-features
+
+  build-windows-x86:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: stable
+        targets: x86_64-pc-windows-msvc
+
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Build Windows x86_64 executable
+      run: cargo build --release --target x86_64-pc-windows-msvc
+
+    - name: Rename binary for artifact
+      run: |
+        New-Item -ItemType Directory -Force -Path target/artifacts
+        Copy-Item target/x86_64-pc-windows-msvc/release/arnis.exe target/artifacts/arnis-windows-x86_64.exe
+      shell: powershell
+
+    - name: Upload Windows executable artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: arnis-windows-x86_64
+        path: target/artifacts/arnis-windows-x86_64.exe
+        retention-days: 7

@@ -234,25 +234,24 @@ impl Tree<'_> {
     /// Get all possible building wall blocks
     fn get_building_wall_blocks() -> Vec<Block> {
         vec![
-            BLACKSTONE,
+            NETHER_BRICK, // BLACKSTONE doesn't exist in 1.8.9, use NETHER_BRICK instead
             BLACK_TERRACOTTA,
             BRICK,
             BROWN_CONCRETE,
             BROWN_TERRACOTTA,
-            DEEPSLATE_BRICKS,
+            STONE_BRICKS, // DEEPSLATE_BRICKS doesn't exist in 1.8.9, use STONE_BRICKS instead
             END_STONE_BRICKS,
             GRAY_CONCRETE,
             GRAY_TERRACOTTA,
             LIGHT_BLUE_TERRACOTTA,
             LIGHT_GRAY_CONCRETE,
-            MUD_BRICKS,
+            CHISELED_STONE_BRICKS, // MUD_BRICKS doesn't exist in 1.8.9, use CHISELED_STONE_BRICKS for variety
             NETHER_BRICK,
-            NETHERITE_BLOCK,
+            RED_NETHER_BRICK, // NETHERITE_BLOCK doesn't exist in 1.8.9, use RED_NETHER_BRICK for variety
             POLISHED_ANDESITE,
-            POLISHED_BLACKSTONE,
-            POLISHED_BLACKSTONE_BRICKS,
-            POLISHED_DEEPSLATE,
-            POLISHED_GRANITE,
+            CRACKED_STONE_BRICKS, // POLISHED_BLACKSTONE doesn't exist in 1.8.9, use CRACKED_STONE_BRICKS for variety
+            POLISHED_DIORITE, // POLISHED_BLACKSTONE_BRICKS doesn't exist in 1.8.9, use POLISHED_DIORITE for variety
+            POLISHED_GRANITE, // POLISHED_DEEPSLATE doesn't exist in 1.8.9, use POLISHED_GRANITE for variety
             QUARTZ_BLOCK,
             QUARTZ_BRICKS,
             SANDSTONE,

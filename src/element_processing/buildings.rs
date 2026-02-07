@@ -132,7 +132,7 @@ pub fn generate_buildings(
         POLISHED_ANDESITE,
         SMOOTH_STONE,
         STONE_BRICKS,
-        MUD_BRICKS,
+        BRICK, // MUD_BRICKS doesn't exist in 1.8.9, use BRICK instead
         ANDESITE,
         CHISELED_STONE_BRICKS,
     ];

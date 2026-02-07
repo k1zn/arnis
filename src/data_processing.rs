@@ -17,7 +17,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-pub const MIN_Y: i32 = -64;
+pub const MIN_Y: i32 = 0;
 
 /// Generation options that can be passed separately from CLI Args
 #[derive(Clone)]
